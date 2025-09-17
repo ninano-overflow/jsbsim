@@ -77,7 +77,7 @@ class FlightController:
             while self.master.port.inWaiting() > 0:
                 response = self.master.recv_match(type="ATTITUDE", blocking=True)
 
-                if "ATTITUDE" in self.master.message:
+                if "ATTITUDE" in self.master.messages:
                     self.roll_angle = self.master.messages["ATTITUDE"].roll
                     self.pitch_angle = self.master.messages["ATTITUDE"].pitch
                     self.yaw_angle = self.master.messages["ATTITUDE"].yaw / 100
@@ -157,7 +157,7 @@ class SITL:
         while True:
             response = self.master.recv_match(type="ATTITUDE", blocking=True)
 
-            if "ATTITUDE" in self.master.message:
+            if "ATTITUDE" in self.master.messages:
                 self.roll_angle = self.master.messages["ATTITUDE"].roll
                 self.pitch_angle = self.master.messages["ATTITUDE"].pitch
                 self.yaw_angle = self.master.messages["ATTITUDE"].yaw / 100
