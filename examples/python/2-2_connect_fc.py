@@ -5,6 +5,7 @@ from pymavlink import mavutil
 
 # sim_vehicle.py -v ArduPlane -f jsbsim --out 192.168.2.105:14550 --out 192.168.2.105:14551 --out 127.0.0.1:15000
 MESSAGE_INTERVAL = 10
+FC_PORT = "/dev/ttyACM0"
 
 
 def request_message_interval(master, message_id: int, frequency_hz: float):
@@ -34,11 +35,11 @@ def request_message_interval(master, message_id: int, frequency_hz: float):
 
 
 class FlightController:
-    def __init__(self):
+    def __init__(self, flight_controller_port=FC_PORT):
         self.master = None
         self.message_interval = MESSAGE_INTERVAL
 
-        self.flight_controller_port = None
+        self.flight_controller_port = flight_controller_port
 
         self.roll_angle = None
         self.pitch_angle = None
@@ -53,7 +54,9 @@ class FlightController:
 
         print("Available ports:")
         for port in ports:
-            print(f"  {port.device}: {port.description}")
+            print(
+                f"  {port.device}: {port.description}, {port.manufacturer}, {port.product}, {port.serial_number}, {port.interface}, {port.hwid}, {port.vid}, {port.pid}"
+            )
 
         return None
 
@@ -168,7 +171,7 @@ class SITL:
 
 
 def main():
-    fc = FlightController()
+    fc = FlightController(FC_PORT)
     fc.connect_flight_controller()
     fc.request_message_intervals()
     fc.monitor_attitude()
