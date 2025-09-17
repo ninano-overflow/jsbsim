@@ -61,7 +61,8 @@ class FlightController:
         return None
 
     def connect_flight_controller(self):
-        self.flight_controller_port = self.find_flight_controller_ports()
+        if self.flight_controller_port is None:
+            self.flight_controller_port = self.find_flight_controller_ports()
         if self.flight_controller_port is None:
             print("No flight controller port found")
             return
