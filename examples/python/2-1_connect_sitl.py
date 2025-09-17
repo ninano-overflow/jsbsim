@@ -69,7 +69,7 @@ class FlightController:
 
     def request_message_intervals(self):
         request_message_interval(
-            self.master, mavutil.mavlink.MAV_MSG_ATTITUDE, self.message_interval
+            self.master, mavutil.mavlink.MAVLINK_MSG_ID_ATTITUDE, self.message_interval
         )
 
     def monitor_attitude(self):
@@ -150,7 +150,7 @@ class SITL:
 
     def request_message_intervals(self):
         request_message_interval(
-            self.master, mavutil.mavlink.MAV_MSG_ATTITUDE, self.message_interval
+            self.master, mavutil.mavlink.MAVLINK_MSG_ID_ATTITUDE, self.message_interval
         )
 
     def monitor_attitude(self):
