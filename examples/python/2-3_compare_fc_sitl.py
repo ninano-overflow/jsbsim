@@ -51,6 +51,8 @@ class FlightController:
         self.pitch_angle_radians = None
         self.yaw_angle_radians = None
 
+        self.is_updated = False
+
     def find_flight_controller_ports(self):
         ports = serial.tools.list_ports.comports()
         for port in ports:
@@ -95,6 +97,7 @@ class FlightController:
                     self.roll_angle = degrees(self.roll_angle_radians)
                     self.pitch_angle = degrees(self.pitch_angle_radians)
                     self.yaw_angle = degrees(self.yaw_angle_radians)
+                    self.is_updated = True
 
                     # print(
                     #     f"FC - Roll: {self.roll_angle:.2f}, Pitch: {self.pitch_angle:.2f}, Yaw: {self.yaw_angle:.2f}"
@@ -165,6 +168,8 @@ class SITL:
         self.pitch_angle_radians = None
         self.yaw_angle_radians = None
 
+        self.is_updated = False
+
     def connect_sitl(self):
         self.master = mavutil.mavlink_connection(
             f"{self.sitl_connection_type}:{self.sitl_address}:{self.sitl_port}",
@@ -189,7 +194,7 @@ class SITL:
                     self.roll_angle = degrees(self.roll_angle_radians)
                     self.pitch_angle = degrees(self.pitch_angle_radians)
                     self.yaw_angle = degrees(self.yaw_angle_radians)
-
+                    self.is_updated = True
                     # print(
                     #         f"SITL - Roll: {self.roll_angle:.2f}, Pitch: {self.pitch_angle:.2f}, Yaw: {self.yaw_angle:.2f}"
                     #     )
@@ -211,10 +216,12 @@ print("Starting monitoring threads...")
 def compare_attitudes():
     global fc, sitl
     while True:
-
-        print(
-            f"FC: roll: {fc.roll_angle} pitch: {fc.pitch_angle} yaw: {fc.yaw_angle}, SITL: {sitl.roll_angle} pitch: {sitl.pitch_angle} yaw: {sitl.yaw_angle}"
-        )
+        if fc.is_updated and sitl.is_updated:
+            print(
+                f"FC: roll: {fc.roll_angle} pitch: {fc.pitch_angle} yaw: {fc.yaw_angle}, SITL: {sitl.roll_angle} pitch: {sitl.pitch_angle} yaw: {sitl.yaw_angle}"
+            )
+            fc.is_updated = False
+            sitl.is_updated = False
         time.sleep(0.01)
 
 
