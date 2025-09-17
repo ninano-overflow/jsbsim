@@ -1,3 +1,4 @@
+from math import degrees
 import serial
 import serial.tools.list_ports
 import time
@@ -83,9 +84,9 @@ class FlightController:
                 response = self.master.recv_match(type="ATTITUDE", blocking=True)
 
                 if "ATTITUDE" in self.master.messages:
-                    self.roll_angle = self.master.messages["ATTITUDE"].roll
-                    self.pitch_angle = self.master.messages["ATTITUDE"].pitch
-                    self.yaw_angle = self.master.messages["ATTITUDE"].yaw / 100
+                    self.roll_angle = degrees(self.master.messages["ATTITUDE"].roll)
+                    self.pitch_angle = degrees(self.master.messages["ATTITUDE"].pitch)
+                    self.yaw_angle = degrees(self.master.messages["ATTITUDE"].yaw)
                     print(
                         f"Roll: {self.roll_angle}, Pitch: {self.pitch_angle}, Yaw: {self.yaw_angle}"
                     )
@@ -168,7 +169,9 @@ class SITL:
             if "ATTITUDE" in self.master.messages:
                 self.roll_angle = self.master.messages["ATTITUDE"].roll
                 self.pitch_angle = self.master.messages["ATTITUDE"].pitch
-                self.yaw_angle = self.master.messages["ATTITUDE"].yaw / 100
+                self.yaw_angle = self.master.messages[
+                    "ATTITUDE"
+                ].yaw  # how to set this to degrees?
                 print(
                     f"Roll: {self.roll_angle}, Pitch: {self.pitch_angle}, Yaw: {self.yaw_angle}"
                 )
