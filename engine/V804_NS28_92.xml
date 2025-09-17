@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+    File:     V804_NS28_92.xml
+    Author:   Geunchan Kim
+    Date:     2025-09-15
+    Description: Models a V804_NS28_92 engine
+
+    Inputs:
+        name:           V804_NS28_92
+        type:           electric
+        Thrust:         170.107518 N
+        Power:          5177 W (matches XML spec ✅)
+        RPM:            5380
+        Efficiency:     3.35 g/W
+        Current:        113.72 A
+-->
+
+<electric_engine name="V804_NS28_92">
+    <power unit="WATTS"> 5177.0 </power>
+</electric_engine>
