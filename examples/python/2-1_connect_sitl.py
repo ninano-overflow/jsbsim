@@ -130,10 +130,11 @@ class SITL:
         sitl_address="127.0.0.1",
         sitl_port=15000,
     ):
+
         self.sitl_connection_type = sitl_connection_type
         self.sitl_address = sitl_address
         self.sitl_port = sitl_port
-        self.sitl_master = None
+        self.master = None
         self.message_interval = 5
 
         self.roll_angle = None
@@ -141,7 +142,7 @@ class SITL:
         self.yaw_angle = None
 
     def connect_sitl(self):
-        self.sitl_master = mavutil.mavlink_connection(
+        self.master = mavutil.mavlink_connection(
             f"{self.sitl_connection_type}:{self.sitl_address}:{self.sitl_port}",
             autoreconnect=True,
         )
@@ -154,13 +155,13 @@ class SITL:
 
     def monitor_attitude(self):
         while True:
-            while self.sitl_master.port.inWaiting() > 0:
-                response = self.sitl_master.recv_match(type="ATTITUDE", blocking=True)
+            while self.master.port.inWaiting() > 0:
+                response = self.master.recv_match(type="ATTITUDE", blocking=True)
 
-                if "ATTITUDE" in self.sitl_master.message:
-                    self.roll_angle = self.sitl_master.messages["ATTITUDE"].roll
-                    self.pitch_angle = self.sitl_master.messages["ATTITUDE"].pitch
-                    self.yaw_angle = self.sitl_master.messages["ATTITUDE"].yaw / 100
+                if "ATTITUDE" in self.master.message:
+                    self.roll_angle = self.master.messages["ATTITUDE"].roll
+                    self.pitch_angle = self.master.messages["ATTITUDE"].pitch
+                    self.yaw_angle = self.master.messages["ATTITUDE"].yaw / 100
 
 
 def main():
