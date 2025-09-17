@@ -168,10 +168,10 @@ class SITL:
 
 
 def main():
-    sitl = SITL()
-    sitl.connect_sitl()
-    sitl.request_message_intervals()
-    sitl.monitor_attitude()
+    fc = FlightController()
+    fc.connect_flight_controller()
+    fc.request_message_intervals()
+    fc.monitor_attitude()
 
 
 if __name__ == "__main__":
