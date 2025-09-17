@@ -86,6 +86,9 @@ class FlightController:
                     self.roll_angle = self.master.messages["ATTITUDE"].roll
                     self.pitch_angle = self.master.messages["ATTITUDE"].pitch
                     self.yaw_angle = self.master.messages["ATTITUDE"].yaw / 100
+                    print(
+                        f"Roll: {self.roll_angle}, Pitch: {self.pitch_angle}, Yaw: {self.yaw_angle}"
+                    )
 
 
 class Gimbal:
