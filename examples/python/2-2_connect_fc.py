@@ -55,7 +55,7 @@ class FlightController:
         print("Available ports:")
         for port in ports:
             print(
-                f"  {port.device}: {port.description}, {port.manufacturer}, {port.product}, {port.serial_number}, {port.interface}, {port.hwid}, {port.vid}, {port.pid}"
+                f"  {port.device}: {port.description}, {port.manufacturer}, {port.name}"
             )
 
         return None
