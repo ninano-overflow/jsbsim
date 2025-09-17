@@ -83,10 +83,10 @@ class FlightController:
             self.master, mavutil.mavlink.MAVLINK_MSG_ID_ATTITUDE, self.message_interval
         )
 
-    def monitor_attitude(self, data_queue=None, stop_event=None):
-        while not (stop_event and stop_event.is_set()):
+    def monitor_attitude(self):
+        while True:
             try:
-                response = self.master.recv_match(type="ATTITUDE", blocking=False, timeout=0.1)
+                response = self.master.recv_match(type="ATTITUDE", blocking=True)
 
                 if response and "ATTITUDE" in self.master.messages:
                     self.roll_angle_radians = self.master.messages["ATTITUDE"].roll
@@ -96,23 +96,12 @@ class FlightController:
                     self.pitch_angle = degrees(self.pitch_angle_radians)
                     self.yaw_angle = degrees(self.yaw_angle_radians)
 
-                    attitude_data = {
-                        'source': 'FC',
-                        'timestamp': time.time(),
-                        'roll': self.roll_angle,
-                        'pitch': self.pitch_angle,
-                        'yaw': self.yaw_angle
-                    }
+                    # print(
+                    #     f"FC - Roll: {self.roll_angle:.2f}, Pitch: {self.pitch_angle:.2f}, Yaw: {self.yaw_angle:.2f}"
+                    # )
 
-                    if data_queue:
-                        data_queue.put(attitude_data)
-                    else:
-                        print(f"FC - Roll: {self.roll_angle:.2f}, Pitch: {self.pitch_angle:.2f}, Yaw: {self.yaw_angle:.2f}")
-
-                time.sleep(0.1)
             except Exception as e:
                 print(f"FC monitoring error: {e}")
-                time.sleep(1)
 
 
 class Gimbal:
@@ -188,10 +177,10 @@ class SITL:
             self.master, mavutil.mavlink.MAVLINK_MSG_ID_ATTITUDE, self.message_interval
         )
 
-    def monitor_attitude(self, data_queue=None, stop_event=None):
-        while not (stop_event and stop_event.is_set()):
+    def monitor_attitude(self):
+        while True:
             try:
-                response = self.master.recv_match(type="ATTITUDE", blocking=False, timeout=0.1)
+                response = self.master.recv_match(type="ATTITUDE", blocking=True)
 
                 if response and "ATTITUDE" in self.master.messages:
                     self.roll_angle_radians = self.master.messages["ATTITUDE"].roll
@@ -201,104 +190,40 @@ class SITL:
                     self.pitch_angle = degrees(self.pitch_angle_radians)
                     self.yaw_angle = degrees(self.yaw_angle_radians)
 
-                    attitude_data = {
-                        'source': 'SITL',
-                        'timestamp': time.time(),
-                        'roll': self.roll_angle,
-                        'pitch': self.pitch_angle,
-                        'yaw': self.yaw_angle
-                    }
+                    # print(
+                    #         f"SITL - Roll: {self.roll_angle:.2f}, Pitch: {self.pitch_angle:.2f}, Yaw: {self.yaw_angle:.2f}"
+                    #     )
 
-                    if data_queue:
-                        data_queue.put(attitude_data)
-                    else:
-                        print(f"SITL - Roll: {self.roll_angle:.2f}, Pitch: {self.pitch_angle:.2f}, Yaw: {self.yaw_angle:.2f}")
-
-                time.sleep(0.1)
             except Exception as e:
                 print(f"SITL monitoring error: {e}")
-                time.sleep(1)
 
 
-def compare_attitudes(data_queue, stop_event):
-    """Compare attitude data between FC and SITL"""
-    fc_data = None
-    sitl_data = None
+fc = FlightController(FC_PORT)
+fc.connect_flight_controller()
+fc.request_message_intervals()
+print("Connecting to SITL")
+sitl = SITL()
+sitl.connect_sitl()
+sitl.request_message_intervals()
+print("Starting monitoring threads...")
 
-    while not stop_event.is_set():
-        try:
-            # Get latest data with timeout
-            while not data_queue.empty():
-                data = data_queue.get_nowait()
-                if data['source'] == 'FC':
-                    fc_data = data
-                elif data['source'] == 'SITL':
-                    sitl_data = data
 
-            # Compare if we have both data points
-            if fc_data and sitl_data:
-                time_diff = abs(fc_data['timestamp'] - sitl_data['timestamp'])
+def compare_attitudes():
+    global fc, sitl
+    while True:
 
-                # Only compare if timestamps are close (within 1 second)
-                if time_diff < 1.0:
-                    roll_diff = fc_data['roll'] - sitl_data['roll']
-                    pitch_diff = fc_data['pitch'] - sitl_data['pitch']
-                    yaw_diff = fc_data['yaw'] - sitl_data['yaw']
-
-                    print(f"\n=== COMPARISON ===")
-                    print(f"FC:   Roll: {fc_data['roll']:6.2f}, Pitch: {fc_data['pitch']:6.2f}, Yaw: {fc_data['yaw']:6.2f}")
-                    print(f"SITL: Roll: {sitl_data['roll']:6.2f}, Pitch: {sitl_data['pitch']:6.2f}, Yaw: {sitl_data['yaw']:6.2f}")
-                    print(f"DIFF: Roll: {roll_diff:6.2f}, Pitch: {pitch_diff:6.2f}, Yaw: {yaw_diff:6.2f}")
-                    print(f"Time diff: {time_diff:.3f}s")
-
-                    # Reset for next comparison
-                    fc_data = None
-                    sitl_data = None
-
-            time.sleep(0.5)
-
-        except queue.Empty:
-            time.sleep(0.1)
-        except Exception as e:
-            print(f"Comparison error: {e}")
-            time.sleep(1)
+        print(
+            f"FC: roll: {fc.roll_angle} pitch: {fc.pitch_angle} yaw: {fc.yaw_angle}, SITL: {sitl.roll_angle} pitch: {sitl.pitch_angle} yaw: {sitl.yaw_angle}"
+        )
+        time.sleep(0.01)
 
 
 def main():
     # Shared data queue and stop event
-    data_queue = queue.Queue()
-    stop_event = threading.Event()
-
-    print("Connecting to Flight Controller")
-    fc = FlightController(FC_PORT)
-    fc.connect_flight_controller()
-    fc.request_message_intervals()
-
-    print("Connecting to SITL")
-    sitl = SITL()
-    sitl.connect_sitl()
-    sitl.request_message_intervals()
-
-    print("Starting monitoring threads...")
-
     # Create threads
-    fc_thread = threading.Thread(
-        target=fc.monitor_attitude,
-        args=(data_queue, stop_event),
-        name="FC_Monitor"
-    )
-
-    sitl_thread = threading.Thread(
-        target=sitl.monitor_attitude,
-        args=(data_queue, stop_event),
-        name="SITL_Monitor"
-    )
-
-    compare_thread = threading.Thread(
-        target=compare_attitudes,
-        args=(data_queue, stop_event),
-        name="Comparator"
-    )
+    fc_thread = threading.Thread(target=fc.monitor_attitude, name="FC_Monitor")
+    sitl_thread = threading.Thread(target=sitl.monitor_attitude, name="SITL_Monitor")
+    compare_thread = threading.Thread(target=compare_attitudes, name="Comparator")
 
     # Start threads
     fc_thread.start()
@@ -311,7 +236,6 @@ def main():
             time.sleep(1)
     except KeyboardInterrupt:
         print("\nStopping...")
-        stop_event.set()
 
         # Wait for threads to finish
         fc_thread.join(timeout=5)
