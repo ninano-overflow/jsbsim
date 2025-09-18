@@ -258,10 +258,12 @@ g.connect_motors()
 fc = FlightController(FC_PORT)
 fc.connect_flight_controller()
 fc.request_message_intervals()
+fc.master.wait_heartbeat()
 print("Connecting to SITL")
 sitl = SITL()
 sitl.connect_sitl()
 sitl.request_message_intervals()
+sitl.master.wait_heartbeat()
 print("Starting monitoring threads...")
 
 
