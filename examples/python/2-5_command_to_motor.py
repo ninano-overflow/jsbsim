@@ -258,7 +258,7 @@ def compare_attitudes():
             and fc.yaw_angle is not None
         ):
             print(
-                f" Roll diff: {sitl.roll_angle - fc.roll_angle}, Pitch diff: {sitl.pitch_angle - fc.pitch_angle}, Yaw diff: {sitl.yaw_angle - fc.yaw_angle}"
+                f" Roll diff: {sitl.roll_angle_radians - fc.roll_angle_radians}, Pitch diff: {sitl.pitch_angle_radians - fc.pitch_angle_radians}, Yaw diff: {sitl.yaw_angle_radians - fc.yaw_angle_radians}"
             )
         else:
             print(
