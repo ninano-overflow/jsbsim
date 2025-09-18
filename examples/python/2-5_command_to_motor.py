@@ -278,7 +278,7 @@ def compare_attitudes():
             print(
                 f" Roll: {sitl.roll_angle}, Pitch: {sitl.pitch_angle}, Yaw: {sitl.yaw_angle}, FC Roll: {fc.roll_angle}, Pitch: {fc.pitch_angle}, Yaw: {fc.yaw_angle}"
             )
-        # time.sleep(0.2)
+        time.sleep(0.1)
 
 
 def main():
