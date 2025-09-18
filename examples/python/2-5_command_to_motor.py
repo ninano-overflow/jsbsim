@@ -68,11 +68,11 @@ class FlightController:
                 print(f"Found flight controller port: {port.device}")
                 return port.device
 
-        print("Available ports:")
-        for port in ports:
-            print(
-                f"  {port.device}: {port.description}, {port.manufacturer}, {port.name}"
-            )
+        # print("Available ports:")
+        # for port in ports:
+        #     print(
+        #         f"  {port.device}: {port.description}, {port.manufacturer}, {port.name}"
+        #     )
 
         return None
 
@@ -157,7 +157,6 @@ class Gimbal:
         print(f"Finding motor with serial number: {serial_number}")
         ports = serial.tools.list_ports.comports()
         for port in ports:
-            print(f"{port.device}: {port.serial_number}")
             if serial_number == port.serial_number:
                 print(f"Found motor port: {port.device}")
                 return port.device
@@ -260,6 +259,10 @@ def compare_attitudes():
         ):
             print(
                 f" Roll diff: {sitl.roll_angle - fc.roll_angle}, Pitch diff: {sitl.pitch_angle - fc.pitch_angle}, Yaw diff: {sitl.yaw_angle - fc.yaw_angle}"
+            )
+        else:
+            print(
+                f" Roll: {sitl.roll_angle}, Pitch: {sitl.pitch_angle}, Yaw: {sitl.yaw_angle}, FC Roll: {fc.roll_angle}, Pitch: {fc.pitch_angle}, Yaw: {fc.yaw_angle}"
             )
         time.sleep(0.1)
 
