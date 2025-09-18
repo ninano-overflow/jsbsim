@@ -154,13 +154,15 @@ class Gimbal:
         print("Connected to motors")
 
     def find_motor(self, serial_number):
+        print(f"Finding motor with serial number: {serial_number}")
         ports = serial.tools.list_ports.comports()
         for port in ports:
             print(f"{port.device}: {port.serial_number}")
-            if serial_number in port.serial_number:
+            if serial_number == port.serial_number:
                 print(f"Found motor port: {port.device}")
                 return port.device
 
+        print("No motor port found")
         return None
 
     def command_motor(self, type: str, value: float):
