@@ -259,7 +259,7 @@ def compare_attitudes():
             pitch_diff = round(
                 float(sitl.pitch_angle_radians - fc.pitch_angle_radians), 2
             )
-            yaw_diff = round(float(sitl.yaw_angle_radians - fc.yaw_angle_radians), 2)
+            yaw_diff = round(float(fc.yaw_angle_radians - sitl.yaw_angle_radians), 2)
             print(
                 f" Roll diff: {roll_diff}, Pitch diff: {pitch_diff}, Yaw diff: {yaw_diff}"
             )
@@ -270,7 +270,7 @@ def compare_attitudes():
             print(
                 f" Roll: {sitl.roll_angle}, Pitch: {sitl.pitch_angle}, Yaw: {sitl.yaw_angle}, FC Roll: {fc.roll_angle}, Pitch: {fc.pitch_angle}, Yaw: {fc.yaw_angle}"
             )
-        time.sleep(0.1)
+        time.sleep(0.2)
 
 
 def main():
