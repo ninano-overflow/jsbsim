@@ -176,7 +176,7 @@ class Gimbal:
         return None
 
     def command_motor(self, type: str, value: float):
-        print(f"Commanded {type} motor to {value}")
+        # print(f"Commanded {type} motor to {value}")
 
         if type == "roll":
             self.roll_motor.write(f"T{value}\n".encode())
@@ -316,7 +316,7 @@ while True:
         pitch_diff = round(float(sitl.pitch_angle_radians - fc.pitch_angle_radians), 2)
         yaw_diff = round(float(fc.yaw_angle_radians - sitl.yaw_angle_radians), 2)
         print(
-            f" Roll diff: {roll_diff}, Pitch diff: {pitch_diff}, Yaw diff: {yaw_diff}"
+            f"{time.time()} Roll diff: {roll_diff}, Pitch diff: {pitch_diff}, Yaw diff: {yaw_diff}"
         )
         g.command_motor("roll", roll_diff * ROLL_MULTIPLIER)
         g.command_motor("pitch", pitch_diff * PITCH_MULTIPLIER)
