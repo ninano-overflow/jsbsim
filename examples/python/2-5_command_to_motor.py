@@ -113,7 +113,7 @@ class FlightController:
                     # print(
                     #     f"FC - Roll: {self.roll_angle:.2f}, Pitch: {self.pitch_angle:.2f}, Yaw: {self.yaw_angle:.2f}"
                     # )
-
+                time.sleep(0.1)
             except Exception as e:
                 print(f"FC monitoring error: {e}")
 
@@ -231,7 +231,7 @@ class SITL:
                     # print(
                     #         f"SITL - Roll: {self.roll_angle:.2f}, Pitch: {self.pitch_angle:.2f}, Yaw: {self.yaw_angle:.2f}"
                     #     )
-
+                time.sleep(0.1)
             except Exception as e:
                 print(f"SITL monitoring error: {e}")
 
