@@ -166,11 +166,11 @@ class Gimbal:
 
     def command_motor(self, type: str, value: float):
         if type == "roll":
-            self.roll_motor.write(f"T{value}\n")
+            self.roll_motor.write(f"T{value}\n".encode())
         elif type == "pitch":
-            self.pitch_motor.write(f"T{value}\n")
+            self.pitch_motor.write(f"T{value}\n".encode())
         elif type == "yaw":
-            self.yaw_motor.write(f"T{value}\n")
+            self.yaw_motor.write(f"T{value}\n".encode())
         else:
             raise ValueError(f"Invalid motor type: {type}")
 
