@@ -264,7 +264,7 @@ def compare_attitudes():
                 f" Roll diff: {roll_diff}, Pitch diff: {pitch_diff}, Yaw diff: {yaw_diff}"
             )
             g.command_motor("roll", roll_diff * ROLL_MULTIPLIER)
-            # g.command_motor("pitch", pitch_diff * PITCH_MULTIPLIER)
+            g.command_motor("pitch", pitch_diff * PITCH_MULTIPLIER)
             g.command_motor("yaw", yaw_diff * YAW_MULTIPLIER)
         else:
             print(
