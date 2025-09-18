@@ -259,7 +259,7 @@ def compare_attitudes():
         ):
             print(
                 f" Roll diff: {sitl.roll_angle_radians - fc.roll_angle_radians}, Pitch diff: {sitl.pitch_angle_radians - fc.pitch_angle_radians}, Yaw diff: {sitl.yaw_angle_radians - fc.yaw_angle_radians}"
-            # )
+            )
             # g.command_motor("roll", sitl.roll_angle_radians - fc.roll_angle_radians)
             # g.command_motor("pitch", sitl.pitch_angle_radians - fc.pitch_angle_radians)
             g.command_motor("yaw", sitl.yaw_angle_radians - fc.yaw_angle_radians)
