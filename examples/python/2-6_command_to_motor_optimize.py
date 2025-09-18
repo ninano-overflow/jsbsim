@@ -321,3 +321,5 @@ while True:
         g.command_motor("roll", roll_diff * ROLL_MULTIPLIER)
         g.command_motor("pitch", pitch_diff * PITCH_MULTIPLIER)
         g.command_motor("yaw", yaw_diff * YAW_MULTIPLIER)
+
+    time.sleep(0.1)
