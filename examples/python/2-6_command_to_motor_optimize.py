@@ -118,8 +118,6 @@ class FlightController:
                         self.yaw_angle = degrees(self.yaw_angle_radians)
                         self.is_updated = True
 
-                self.master.flushInput()
-
                 # print(
                 #     f"FC - Roll: {self.roll_angle:.2f}, Pitch: {self.pitch_angle:.2f}, Yaw: {self.yaw_angle:.2f}"
                 # )
@@ -249,7 +247,6 @@ class SITL:
                     # print(
                     #         f"SITL - Roll: {self.roll_angle:.2f}, Pitch: {self.pitch_angle:.2f}, Yaw: {self.yaw_angle:.2f}"
                     #     )
-                self.master.flushInput()
 
                 # time.sleep(0.1)
             except Exception as e:
@@ -268,57 +265,59 @@ sitl.request_message_intervals()
 print("Starting monitoring threads...")
 
 
-def compare_attitudes():
-    global fc, sitl, g
-    while True:
-        # print(
-        #     f"FC: roll: {fc.roll_angle} pitch: {fc.pitch_angle} yaw: {fc.yaw_angle}, SITL: {sitl.roll_angle} pitch: {sitl.pitch_angle} yaw: {sitl.yaw_angle}"
-        # )
-        if sitl.roll_angle is not None and fc.roll_angle is not None:
-            roll_diff = round(float(fc.roll_angle_radians - sitl.roll_angle_radians), 2)
-            pitch_diff = round(
-                float(sitl.pitch_angle_radians - fc.pitch_angle_radians), 2
-            )
-            yaw_diff = round(float(fc.yaw_angle_radians - sitl.yaw_angle_radians), 2)
-            print(
-                f" Roll diff: {roll_diff}, Pitch diff: {pitch_diff}, Yaw diff: {yaw_diff}"
-            )
-            g.command_motor("roll", roll_diff * ROLL_MULTIPLIER)
-            g.command_motor("pitch", pitch_diff * PITCH_MULTIPLIER)
-            g.command_motor("yaw", yaw_diff * YAW_MULTIPLIER)
-        else:
-            print(
-                f" Roll: {sitl.roll_angle}, Pitch: {sitl.pitch_angle}, Yaw: {sitl.yaw_angle}, FC Roll: {fc.roll_angle}, Pitch: {fc.pitch_angle}, Yaw: {fc.yaw_angle}"
-            )
-        time.sleep(0.1)
+# def compare_attitudes():
+#     global fc, sitl, g
+#     while True:
+#         # print(
+#         #     f"FC: roll: {fc.roll_angle} pitch: {fc.pitch_angle} yaw: {fc.yaw_angle}, SITL: {sitl.roll_angle} pitch: {sitl.pitch_angle} yaw: {sitl.yaw_angle}"
+#         # )
+#         if sitl.roll_angle is not None and fc.roll_angle is not None:
+#             roll_diff = round(float(fc.roll_angle_radians - sitl.roll_angle_radians), 2)
+#             pitch_diff = round(
+#                 float(sitl.pitch_angle_radians - fc.pitch_angle_radians), 2
+#             )
+#             yaw_diff = round(float(fc.yaw_angle_radians - sitl.yaw_angle_radians), 2)
+#             print(
+#                 f" Roll diff: {roll_diff}, Pitch diff: {pitch_diff}, Yaw diff: {yaw_diff}"
+#             )
+#             g.command_motor("roll", roll_diff * ROLL_MULTIPLIER)
+#             g.command_motor("pitch", pitch_diff * PITCH_MULTIPLIER)
+#             g.command_motor("yaw", yaw_diff * YAW_MULTIPLIER)
+#         else:
+#             print(
+#                 f" Roll: {sitl.roll_angle}, Pitch: {sitl.pitch_angle}, Yaw: {sitl.yaw_angle}, FC Roll: {fc.roll_angle}, Pitch: {fc.pitch_angle}, Yaw: {fc.yaw_angle}"
+#             )
+#         time.sleep(0.1)
 
 
-def main():
-    # Shared data queue and stop event
-    # Create threads
-    fc_thread = threading.Thread(target=fc.monitor_attitude, name="FC_Monitor")
-    sitl_thread = threading.Thread(target=sitl.monitor_attitude, name="SITL_Monitor")
-    compare_thread = threading.Thread(target=compare_attitudes, name="Comparator")
+while True:
+    fc_response = fc.master.recv_match(type="ATTITUDE", blocking=False)
+    if "ATTITUDE" in fc.master.messages:
+        fc.roll_angle_radians = fc.master.messages["ATTITUDE"].roll
+        fc.pitch_angle_radians = fc.master.messages["ATTITUDE"].pitch
+        fc.yaw_angle_radians = fc.master.messages["ATTITUDE"].yaw
+        fc.roll_angle = degrees(fc.roll_angle_radians)
+        fc.pitch_angle = degrees(fc.pitch_angle_radians)
+        fc.yaw_angle = degrees(fc.yaw_angle_radians)
+        fc.is_updated = True
 
-    # Start threads
-    fc_thread.start()
-    sitl_thread.start()
-    compare_thread.start()
+    sitl_response = sitl.master.recv_match(type="ATTITUDE", blocking=False)
+    if "ATTITUDE" in sitl.master.messages:
+        sitl.roll_angle_radians = sitl.master.messages["ATTITUDE"].roll
+        sitl.pitch_angle_radians = sitl.master.messages["ATTITUDE"].pitch
+        sitl.yaw_angle_radians = sitl.master.messages["ATTITUDE"].yaw
+        sitl.roll_angle = degrees(sitl.roll_angle_radians)
+        sitl.pitch_angle = degrees(sitl.pitch_angle_radians)
+        sitl.yaw_angle = degrees(sitl.yaw_angle_radians)
+        sitl.is_updated = True
 
-    try:
-        print("Press Ctrl+C to stop...")
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("\nStopping...")
-
-        # Wait for threads to finish
-        fc_thread.join(timeout=5)
-        sitl_thread.join(timeout=5)
-        compare_thread.join(timeout=5)
-
-        print("All threads stopped.")
-
-
-if __name__ == "__main__":
-    main()
+    if sitl.roll_angle is not None and fc.roll_angle is not None:
+        roll_diff = round(float(fc.roll_angle_radians - sitl.roll_angle_radians), 2)
+        pitch_diff = round(float(sitl.pitch_angle_radians - fc.pitch_angle_radians), 2)
+        yaw_diff = round(float(fc.yaw_angle_radians - sitl.yaw_angle_radians), 2)
+        print(
+            f" Roll diff: {roll_diff}, Pitch diff: {pitch_diff}, Yaw diff: {yaw_diff}"
+        )
+        g.command_motor("roll", roll_diff * ROLL_MULTIPLIER)
+        g.command_motor("pitch", pitch_diff * PITCH_MULTIPLIER)
+        g.command_motor("yaw", yaw_diff * YAW_MULTIPLIER)
