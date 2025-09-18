@@ -7,7 +7,7 @@ import queue
 from pymavlink import mavutil
 
 # sim_vehicle.py -v ArduPlane -f jsbsim --out 192.168.2.105:14550 --out 192.168.2.105:14551 --out 127.0.0.1:15000
-MESSAGE_INTERVAL = 10
+MESSAGE_INTERVAL = 5
 FC_PORT = "/dev/ttyACM0"
 FC_SERIAL = "36003F001251303337323731"
 FC_LOCATION = "3-1:1.0"
@@ -17,6 +17,9 @@ ARDUINO_ROLL_SERIAL = "34336313537351C0D082"
 ARDUINO_ROLL_LOCATION = "3-3:1.0"
 ARDUINO_PITCH_SERIAL = "7513330333235170E010"
 ARDUINO_PITCH_LOCATION = "3-9:1.0"
+ROLL_MULTIPLIER = 0.5
+PITCH_MULTIPLIER = 0.5
+YAW_MULTIPLIER = 1.0
 
 
 def request_message_interval(master, message_id: int, frequency_hz: float):
@@ -252,7 +255,7 @@ def compare_attitudes():
         #     f"FC: roll: {fc.roll_angle} pitch: {fc.pitch_angle} yaw: {fc.yaw_angle}, SITL: {sitl.roll_angle} pitch: {sitl.pitch_angle} yaw: {sitl.yaw_angle}"
         # )
         if sitl.roll_angle is not None and fc.roll_angle is not None:
-            roll_diff = round(float(sitl.roll_angle_radians - fc.roll_angle_radians), 2)
+            roll_diff = round(float(fc.roll_angle_radians - sitl.roll_angle_radians), 2)
             pitch_diff = round(
                 float(sitl.pitch_angle_radians - fc.pitch_angle_radians), 2
             )
@@ -260,9 +263,9 @@ def compare_attitudes():
             print(
                 f" Roll diff: {roll_diff}, Pitch diff: {pitch_diff}, Yaw diff: {yaw_diff}"
             )
-            g.command_motor("roll", roll_diff)
-            # g.command_motor("pitch", pitch_diff)
-            g.command_motor("yaw", yaw_diff)
+            g.command_motor("roll", roll_diff * ROLL_MULTIPLIER)
+            # g.command_motor("pitch", pitch_diff * PITCH_MULTIPLIER)
+            g.command_motor("yaw", yaw_diff * YAW_MULTIPLIER)
         else:
             print(
                 f" Roll: {sitl.roll_angle}, Pitch: {sitl.pitch_angle}, Yaw: {sitl.yaw_angle}, FC Roll: {fc.roll_angle}, Pitch: {fc.pitch_angle}, Yaw: {fc.yaw_angle}"
