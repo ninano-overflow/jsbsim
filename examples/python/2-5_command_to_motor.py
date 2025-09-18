@@ -258,11 +258,11 @@ def compare_attitudes():
             and fc.yaw_angle is not None
         ):
             print(
-                f" Roll diff: {float(sitl.roll_angle_radians - fc.roll_angle_radians).round(2)}, Pitch diff: {float(sitl.pitch_angle_radians - fc.pitch_angle_radians).round(2)}, Yaw diff: {float(sitl.yaw_angle_radians - fc.yaw_angle_radians).round(2)}"
+                f" Roll diff: {round(float(sitl.roll_angle_radians - fc.roll_angle_radians), 2)}, Pitch diff: {round(float(sitl.pitch_angle_radians - fc.pitch_angle_radians), 2)}, Yaw diff: {round(float(sitl.yaw_angle_radians - fc.yaw_angle_radians), 2)}"
             )
-            # g.command_motor("roll", sitl.roll_angle_radians - fc.roll_angle_radians)
+            # g.command_motor("roll", round(float(sitl.roll_angle_radians - fc.roll_angle_radians), 2))
             # g.command_motor("pitch", sitl.pitch_angle_radians - fc.pitch_angle_radians)
-            # g.command_motor("yaw", float(sitl.yaw_angle_radians - fc.yaw_angle_radians).round(2))
+            # g.command_motor("yaw", round(float(sitl.yaw_angle_radians - fc.yaw_angle_radians), 2))
         else:
             print(
                 f" Roll: {sitl.roll_angle}, Pitch: {sitl.pitch_angle}, Yaw: {sitl.yaw_angle}, FC Roll: {fc.roll_angle}, Pitch: {fc.pitch_angle}, Yaw: {fc.yaw_angle}"
