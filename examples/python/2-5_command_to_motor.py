@@ -244,7 +244,7 @@ print("Starting monitoring threads...")
 
 
 def compare_attitudes():
-    global fc, sitl
+    global fc, sitl, g
     while True:
         # print(
         #     f"FC: roll: {fc.roll_angle} pitch: {fc.pitch_angle} yaw: {fc.yaw_angle}, SITL: {sitl.roll_angle} pitch: {sitl.pitch_angle} yaw: {sitl.yaw_angle}"
@@ -259,7 +259,10 @@ def compare_attitudes():
         ):
             print(
                 f" Roll diff: {sitl.roll_angle_radians - fc.roll_angle_radians}, Pitch diff: {sitl.pitch_angle_radians - fc.pitch_angle_radians}, Yaw diff: {sitl.yaw_angle_radians - fc.yaw_angle_radians}"
-            )
+            # )
+            # g.command_motor("roll", sitl.roll_angle_radians - fc.roll_angle_radians)
+            # g.command_motor("pitch", sitl.pitch_angle_radians - fc.pitch_angle_radians)
+            g.command_motor("yaw", sitl.yaw_angle_radians - fc.yaw_angle_radians)
         else:
             print(
                 f" Roll: {sitl.roll_angle}, Pitch: {sitl.pitch_angle}, Yaw: {sitl.yaw_angle}, FC Roll: {fc.roll_angle}, Pitch: {fc.pitch_angle}, Yaw: {fc.yaw_angle}"
