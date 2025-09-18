@@ -251,14 +251,7 @@ def compare_attitudes():
         # print(
         #     f"FC: roll: {fc.roll_angle} pitch: {fc.pitch_angle} yaw: {fc.yaw_angle}, SITL: {sitl.roll_angle} pitch: {sitl.pitch_angle} yaw: {sitl.yaw_angle}"
         # )
-        if (
-            sitl.roll_angle is not None
-            and fc.roll_angle is not None
-            and sitl.pitch_angle is not None
-            and fc.pitch_angle is not None
-            and sitl.yaw_angle is not None
-            and fc.yaw_angle is not None
-        ):
+        if sitl.roll_angle is not None and fc.roll_angle is not None:
             roll_diff = round(float(sitl.roll_angle_radians - fc.roll_angle_radians), 2)
             pitch_diff = round(
                 float(sitl.pitch_angle_radians - fc.pitch_angle_radians), 2
@@ -267,8 +260,8 @@ def compare_attitudes():
             print(
                 f" Roll diff: {roll_diff}, Pitch diff: {pitch_diff}, Yaw diff: {yaw_diff}"
             )
-            # g.command_motor("roll", round(float(sitl.roll_angle_radians - fc.roll_angle_radians), 2))
-            # g.command_motor("pitch", round(float(sitl.pitch_angle_radians - fc.pitch_angle_radians), 2))
+            g.command_motor("roll", roll_diff)
+            # g.command_motor("pitch", pitch_diff)
             g.command_motor("yaw", yaw_diff)
         else:
             print(
