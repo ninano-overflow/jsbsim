@@ -165,6 +165,8 @@ class Gimbal:
         return None
 
     def command_motor(self, type: str, value: float):
+        print(f"Commanded {type} motor to {value}")
+
         if type == "roll":
             self.roll_motor.write(f"T{value}\n".encode())
         elif type == "pitch":
