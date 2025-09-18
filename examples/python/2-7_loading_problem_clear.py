@@ -145,24 +145,44 @@ class Gimbal:
         if not self.roll_motor_port:
             raise ValueError(f"Roll motor port not found")
         self.roll_motor = serial.Serial(
-            self.roll_motor_port, self.roll_motor_baudrate, timeout=5
+            self.roll_motor_port,
+            self.roll_motor_baudrate,
+            timeout=0.1,
+            write_timeout=0.1,
+            inter_byte_timeout=0.05,
         )
 
         self.pitch_motor_port = self.find_motor(ARDUINO_PITCH_SERIAL)
         if not self.pitch_motor_port:
             raise ValueError(f"Pitch motor port not found")
         self.pitch_motor = serial.Serial(
-            self.pitch_motor_port, self.pitch_motor_baudrate, timeout=5
+            self.pitch_motor_port,
+            self.pitch_motor_baudrate,
+            timeout=0.1,
+            write_timeout=0.1,
+            inter_byte_timeout=0.05,
         )
 
         self.yaw_motor_port = self.find_motor(ARDUINO_YAW_SERIAL)
         if not self.yaw_motor_port:
             raise ValueError(f"Yaw motor port not found")
         self.yaw_motor = serial.Serial(
-            self.yaw_motor_port, self.yaw_motor_baudrate, timeout=5
+            self.yaw_motor_port,
+            self.yaw_motor_baudrate,
+            timeout=0.1,
+            write_timeout=0.1,
+            inter_byte_timeout=0.05,
         )
 
-        print("Connected to motors")
+        # Clear any existing buffers
+        self.roll_motor.reset_input_buffer()
+        self.roll_motor.reset_output_buffer()
+        self.pitch_motor.reset_input_buffer()
+        self.pitch_motor.reset_output_buffer()
+        self.yaw_motor.reset_input_buffer()
+        self.yaw_motor.reset_output_buffer()
+
+        print("Connected to motors with optimized timeouts")
 
     def find_motor(self, serial_number):
         print(f"Finding motor with serial number: {serial_number}")
@@ -199,36 +219,127 @@ class Gimbal:
             "roll": roll_ok,
             "pitch": pitch_ok,
             "yaw": yaw_ok,
-            "all_connected": roll_ok and pitch_ok and yaw_ok
+            "all_connected": roll_ok and pitch_ok and yaw_ok,
         }
 
         if not status["all_connected"]:
-            print(f"⚠️ Motor connection status: Roll={roll_ok}, Pitch={pitch_ok}, Yaw={yaw_ok}")
+            print(
+                f"⚠️ Motor connection status: Roll={roll_ok}, Pitch={pitch_ok}, Yaw={yaw_ok}"
+            )
 
         return status
 
+    def reconnect_motor(self, motor_type):
+        """Reconnect a specific motor"""
+        try:
+            print(f"🔄 Attempting to reconnect {motor_type} motor...")
+
+            if motor_type == "roll":
+                if self.roll_motor and self.roll_motor.is_open:
+                    self.roll_motor.close()
+                self.roll_motor = serial.Serial(
+                    self.roll_motor_port,
+                    self.roll_motor_baudrate,
+                    timeout=0.1,
+                    write_timeout=0.1,
+                    inter_byte_timeout=0.05,
+                )
+                self.roll_motor.reset_input_buffer()
+                self.roll_motor.reset_output_buffer()
+            elif motor_type == "pitch":
+                if self.pitch_motor and self.pitch_motor.is_open:
+                    self.pitch_motor.close()
+                self.pitch_motor = serial.Serial(
+                    self.pitch_motor_port,
+                    self.pitch_motor_baudrate,
+                    timeout=0.1,
+                    write_timeout=0.1,
+                    inter_byte_timeout=0.05,
+                )
+                self.pitch_motor.reset_input_buffer()
+                self.pitch_motor.reset_output_buffer()
+            elif motor_type == "yaw":
+                if self.yaw_motor and self.yaw_motor.is_open:
+                    self.yaw_motor.close()
+                self.yaw_motor = serial.Serial(
+                    self.yaw_motor_port,
+                    self.yaw_motor_baudrate,
+                    timeout=0.1,
+                    write_timeout=0.1,
+                    inter_byte_timeout=0.05,
+                )
+                self.yaw_motor.reset_input_buffer()
+                self.yaw_motor.reset_output_buffer()
+
+            print(f"✅ {motor_type} motor reconnected successfully")
+            return True
+        except Exception as e:
+            print(f"❌ Failed to reconnect {motor_type} motor: {e}")
+            return False
+
     def command_motor(self, type: str, value: float):
         start_time = time.time()
+        max_retries = 2
 
-        try:
-            if type == "roll":
-                self.roll_motor.write(f"T{value}\n".encode())
-            elif type == "pitch":
-                self.pitch_motor.write(f"T{value}\n".encode())
-            elif type == "yaw":
-                self.yaw_motor.write(f"T{value}\n".encode())
-            else:
-                raise ValueError(f"Invalid motor type: {type}")
+        for attempt in range(max_retries + 1):
+            try:
+                # Get the motor object
+                motor = getattr(self, f"{type}_motor")
 
-            # Measure command execution time
-            exec_time = (time.time() - start_time) * 1000
-            if exec_time > 50:  # If command takes more than 50ms
-                print(f"⚠️ Slow motor command: {type} took {exec_time:.1f}ms")
+                if motor is None or not motor.is_open:
+                    if attempt < max_retries:
+                        print(
+                            f"🔄 Motor {type} not available, attempting reconnection..."
+                        )
+                        if not self.reconnect_motor(type):
+                            continue
+                        motor = getattr(self, f"{type}_motor")
+                    else:
+                        print(f"❌ Motor {type} permanently unavailable")
+                        return
 
-        except Exception as e:
-            print(f"❌ Motor command failed for {type}: {e}")
-            # Check if connection is still alive
-            self.check_motor_connection(getattr(self, f"{type}_motor"), type)
+                # Clear buffers before sending command
+                motor.reset_input_buffer()
+                motor.reset_output_buffer()
+
+                # Send command
+                command = f"T{value}\n".encode()
+                motor.write(command)
+                motor.flush()  # Force write
+
+                # Measure command execution time
+                exec_time = (time.time() - start_time) * 1000
+
+                if exec_time > 50:  # If command takes more than 50ms
+                    print(f"⚠️ Slow motor command: {type} took {exec_time:.1f}ms")
+                    if exec_time > 200 and attempt < max_retries:  # Retry if very slow
+                        print(
+                            f"🔄 Retrying {type} motor command (attempt {attempt + 2})"
+                        )
+                        continue
+
+                return  # Success, exit retry loop
+
+            except serial.SerialTimeoutException:
+                print(f"⏰ Timeout on {type} motor (attempt {attempt + 1})")
+                if attempt < max_retries:
+                    time.sleep(0.01)  # Brief delay before retry
+                    continue
+                else:
+                    print(f"❌ {type} motor timeout after {max_retries + 1} attempts")
+
+            except Exception as e:
+                print(
+                    f"❌ Motor command failed for {type} (attempt {attempt + 1}): {e}"
+                )
+                if attempt < max_retries:
+                    # Try to reconnect
+                    self.reconnect_motor(type)
+                    continue
+                else:
+                    print(
+                        f"❌ {type} motor permanently failed after {max_retries + 1} attempts"
+                    )
 
 
 class SITL:
@@ -383,27 +494,57 @@ while True:
         performance_log.append(loop_time)
 
         # Print with performance metrics
-        print(f"{time.time():.3f} Roll diff: {roll_diff}, Pitch diff: {pitch_diff}, Yaw diff: {yaw_diff} | Loop: {loop_time:.1f}ms, Motors: {motor_time:.1f}ms")
+        print(
+            f"{time.time():.3f} Roll diff: {roll_diff}, Pitch diff: {pitch_diff}, Yaw diff: {yaw_diff} | Loop: {loop_time:.1f}ms, Motors: {motor_time:.1f}ms"
+        )
 
         # Check for performance degradation
         if loop_time > 200:  # If loop takes more than 200ms
             print(f"🚨 SLOW LOOP DETECTED: {loop_time:.1f}ms (should be ~100ms)")
 
-    # Periodic motor connection check (every 10 seconds)
-    if time.time() - last_motor_check > 10:
+    # Periodic motor connection check (every 5 seconds or when performance degrades)
+    if time.time() - last_motor_check > 5 or (
+        performance_log and performance_log[-1] > 100
+    ):
         motor_status = g.check_all_motors()
         if not motor_status["all_connected"]:
             print(f"🚨 MOTOR CONNECTION ISSUE DETECTED at loop {loop_count}")
+            # Force reconnection of failed motors
+            for motor_type, status in motor_status.items():
+                if motor_type != "all_connected" and not status:
+                    print(f"🔄 Force reconnecting {motor_type} motor...")
+                    g.reconnect_motor(motor_type)
         last_motor_check = time.time()
 
     # Performance analysis every 50 loops
     if loop_count % 50 == 0:
         if performance_log:
             avg_time = sum(performance_log[-50:]) / min(50, len(performance_log))
-            print(f"📊 Performance Report (Loop {loop_count}): Avg loop time: {avg_time:.1f}ms")
+            print(
+                f"📊 Performance Report (Loop {loop_count}): Avg loop time: {avg_time:.1f}ms"
+            )
 
             # Check for performance degradation
             if avg_time > 150:
-                print(f"⚠️ PERFORMANCE DEGRADATION: Average loop time increased to {avg_time:.1f}ms")
+                print(
+                    f"⚠️ PERFORMANCE DEGRADATION: Average loop time increased to {avg_time:.1f}ms"
+                )
+
+                # Emergency motor reset if performance is very bad
+                if avg_time > 500:
+                    print(
+                        f"🚨 EMERGENCY: Resetting all motor connections due to severe performance degradation"
+                    )
+                    try:
+                        g.reconnect_motor("roll")
+                        g.reconnect_motor("pitch")
+                        g.reconnect_motor("yaw")
+                        print(f"✅ Emergency motor reset completed")
+                        # Clear performance history to start fresh
+                        performance_log = performance_log[
+                            -10:
+                        ]  # Keep only last 10 measurements
+                    except Exception as e:
+                        print(f"❌ Emergency reset failed: {e}")
 
     time.sleep(0.1)
