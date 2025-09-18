@@ -247,8 +247,11 @@ print("Starting monitoring threads...")
 def compare_attitudes():
     global fc, sitl
     while True:
+        # print(
+        #     f"FC: roll: {fc.roll_angle} pitch: {fc.pitch_angle} yaw: {fc.yaw_angle}, SITL: {sitl.roll_angle} pitch: {sitl.pitch_angle} yaw: {sitl.yaw_angle}"
+        # )
         print(
-            f"FC: roll: {fc.roll_angle} pitch: {fc.pitch_angle} yaw: {fc.yaw_angle}, SITL: {sitl.roll_angle} pitch: {sitl.pitch_angle} yaw: {sitl.yaw_angle}"
+            f" Roll diff: {sitl.roll_angle - fc.roll_angle}, Pitch diff: {sitl.pitch_angle - fc.pitch_angle}, Yaw diff: {sitl.yaw_angle - fc.yaw_angle}"
         )
         time.sleep(0.1)
 
