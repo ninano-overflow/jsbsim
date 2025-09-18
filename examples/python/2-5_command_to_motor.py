@@ -99,7 +99,11 @@ class FlightController:
     def monitor_attitude(self):
         while True:
             try:
-                response = self.master.recv_match(type="ATTITUDE", blocking=True)
+                response = self.master.recv_match(type="ATTITUDE", blocking=False)
+
+                if response is None:
+                    time.sleep(0.01)
+                    continue
 
                 if response and "ATTITUDE" in self.master.messages:
                     self.roll_angle_radians = self.master.messages["ATTITUDE"].roll
@@ -113,7 +117,7 @@ class FlightController:
                     # print(
                     #     f"FC - Roll: {self.roll_angle:.2f}, Pitch: {self.pitch_angle:.2f}, Yaw: {self.yaw_angle:.2f}"
                     # )
-                time.sleep(0.1)
+                # time.sleep(0.1)
             except Exception as e:
                 print(f"FC monitoring error: {e}")
 
@@ -218,7 +222,11 @@ class SITL:
     def monitor_attitude(self):
         while True:
             try:
-                response = self.master.recv_match(type="ATTITUDE", blocking=True)
+                response = self.master.recv_match(type="ATTITUDE", blocking=False)
+
+                if response is None:
+                    time.sleep(0.01)
+                    continue
 
                 if response and "ATTITUDE" in self.master.messages:
                     self.roll_angle_radians = self.master.messages["ATTITUDE"].roll
@@ -231,7 +239,7 @@ class SITL:
                     # print(
                     #         f"SITL - Roll: {self.roll_angle:.2f}, Pitch: {self.pitch_angle:.2f}, Yaw: {self.yaw_angle:.2f}"
                     #     )
-                time.sleep(0.1)
+                # time.sleep(0.1)
             except Exception as e:
                 print(f"SITL monitoring error: {e}")
 
@@ -270,7 +278,7 @@ def compare_attitudes():
             print(
                 f" Roll: {sitl.roll_angle}, Pitch: {sitl.pitch_angle}, Yaw: {sitl.yaw_angle}, FC Roll: {fc.roll_angle}, Pitch: {fc.pitch_angle}, Yaw: {fc.yaw_angle}"
             )
-        time.sleep(0.2)
+        # time.sleep(0.2)
 
 
 def main():
