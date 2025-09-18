@@ -130,16 +130,37 @@ class Gimbal:
         self.yaw_motor_baudrate = 115200
 
     def connect_motors(self):
+        self.roll_motor_port = self.find_motor(ARDUINO_ROLL_SERIAL)
+        if not self.roll_motor_port:
+            raise ValueError(f"Roll motor port not found")
         self.roll_motor = serial.Serial(
             self.roll_motor_port, self.roll_motor_baudrate, timeout=5
         )
+
+        self.pitch_motor_port = self.find_motor(ARDUINO_PITCH_SERIAL)
+        if not self.pitch_motor_port:
+            raise ValueError(f"Pitch motor port not found")
         self.pitch_motor = serial.Serial(
             self.pitch_motor_port, self.pitch_motor_baudrate, timeout=5
         )
+
+        self.yaw_motor_port = self.find_motor(ARDUINO_YAW_SERIAL)
+        if not self.yaw_motor_port:
+            raise ValueError(f"Yaw motor port not found")
         self.yaw_motor = serial.Serial(
             self.yaw_motor_port, self.yaw_motor_baudrate, timeout=5
         )
+
         print("Connected to motors")
+
+    def find_motor(self, serial_number):
+        ports = serial.tools.list_ports.comports()
+        for port in ports:
+            if serial_number in port.serial_number:
+                print(f"Found motor port: {port.device}")
+                return port.device
+
+        return None
 
     def command_motor(self, type: str, value: float):
         if type == "roll":
@@ -208,6 +229,8 @@ class SITL:
                 print(f"SITL monitoring error: {e}")
 
 
+g = Gimbal()
+g.connect_motors()
 fc = FlightController(FC_PORT)
 fc.connect_flight_controller()
 fc.request_message_intervals()
